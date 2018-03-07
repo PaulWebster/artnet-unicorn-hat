@@ -219,10 +219,37 @@ Install HyperCon on desktop/laptop machine
 Use HyperCon to install Hyperion on Raspberry Pi
  If you get GNUTLS errors when it tries to fetch Hyperion just pause and try again
  Do not worry about installation errors referring to X11
+
+* Now install the environment for building some of the modules
+The installation of some of the Python modules performs some compilations locally, but OSMC does
+ not come with the needed tools. So install them first:
+ ```
+ sudo apt-get update
+ sudo apt-get install build-essential
+ export ARCH=arm
+ export CROSS_COMPILE=/usr/bin
+ sudo apt-get install python-dev
+
 * Next step is to install the Pimoroni Mote Python files
 ```
-sudo pip install serial mote
+sudo pip install pyserial mote
 ```
+* Note - pyserial not serial and watch out because pyserial has a name clash with serial (which does something totally different)
+* ALso the NumPy module is used to compare arrays - this can be installed using
+```
+sudo pip install numpy
+```
+* Can give errors during the process and takes a long time (e.g. 10 minutes on RPi3)
+Possible errors ...
+ Failed building wheel for numpy
+and
+ Failed cleaning build dir for numpy
+however, if they are the only errors then it should still work ...
+
+An alternative approach that I did not try but will be a lot faster if it works
+sudo apt-get install python-numpy
+
+
 * Then get artnet-server and related files onto the OSMC machine
 * One way to do this is to login via SSH to your OSMC system
   Assuming that you are now in /home/osmc directory ...
@@ -237,14 +264,6 @@ sudo pip install serial mote
  cp artnet-unicorn-hat-mote/hyperion.config.json /etc/hyperion
  ```
  * Then install the modules required by artnet-server
- The installation of Twisted performs some compilations locally, but OSMC does
- not come with the needed tools. So install them first:
- ```
- sudo apt-get update
- sudo apt-get install build-essential
- export ARCH=arm
- export CROSS_COMPILE=/usr/bin
- sudo apt-get install python-dev
  ```
  then you can install Twisted
  ```

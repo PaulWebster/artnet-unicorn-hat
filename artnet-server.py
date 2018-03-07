@@ -1,4 +1,4 @@
-# Art-Net protocol for Pimoroni Unicorn Hat
+# Art-Net protocol for Pimoroni Unicorn Hat and Pimoroni Mote
 # Open Pixel Control protocol for Pimoroni Unicorn Hat and Pimoroni Mote
 # License: MIT
 from __future__ import print_function
@@ -18,6 +18,8 @@ if PimMote:
 from twisted.internet import protocol, endpoints
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
+
+import numpy as np
 
 import sys
 if sys.version_info[0] < 3:
@@ -95,13 +97,15 @@ class ArtNet(DatagramProtocol):
                     mote.show()
 
 class OPC(protocol.Protocol):
-    # Parse Open Pixel Control protocol. See http://openpixelcontrol.org/.
+    # Parse Open Pixel Control protocol. See http://openpixelcontrol.org/
     parseState = 0
     pktChannel = 0
     pktCommand = 0
     pktLength = 0
+    pktCount = 0
     pixelCount = 0
     pixelLimit = 0
+    lastSet = []    # Hold copy of last set of LEDs sent
     MAX_LEDS = x_max * y_max
 
     def dataReceived(self, data):
@@ -110,9 +114,19 @@ class OPC(protocol.Protocol):
         else:
             rawbytes = data ## "map" changed in Python3 - in theory list(map()) should have worked but did not
 
+        OPC.pktCount += 1
         #print("len(rawbytes) %d" % len(rawbytes))
+        #print("Packet count %d" % OPC.pktCount)
         #print(rawbytes)
-        i = 0
+        
+        if (np.array_equal(OPC.lastSet, rawbytes)):
+            # New data is same as last so skip it to save work since LEDs retain last value
+            i = len(rawbytes)    # Set to force skip of processing below
+            # print("Same data as before")
+        else:
+            OPC.lastSet = rawbytes    # Assume this set will be sent
+            i = 0    # Force this set to be processed
+       
         while (i < len(rawbytes)):
             #print("parseState %d i %d" % (OPC.parseState, i))
             if (OPC.parseState == 0):   # get OPC.pktChannel
@@ -172,7 +186,9 @@ class OPC(protocol.Protocol):
                             if PimUnicorn:
                                 unicorn.show()
                             if PimMote:
+                                # print("Showing")
                                 mote.show()
+                                # print("Shown")
                     else:
                         i += copyBytes
                     if (OPC.pixelCount == OPC.pktLength):
