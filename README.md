@@ -48,7 +48,7 @@ you can do using the Pimoroni install script.
 (at the time of writing this (19 October 2017) the Pimoroni install script
 does not work on OSMC so use the command below)
 ```
-sudo pip install serial mote
+sudo pip install pyserial mote numpy
 ```
 
 
